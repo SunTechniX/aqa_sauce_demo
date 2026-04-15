@@ -1,6 +1,6 @@
 from playwright.sync_api import expect
 
-from config.base import URL_BASE_ROOT
+from config.base import URL_BASE_ROOT, URL_INV
 from config.users import USER1_NAME, USERS_PASSWORD
 from pages.inventory_page import InventoryPage
 from pages.login_page import LoginPage
@@ -21,7 +21,7 @@ class TestCheckout:
         login_page.check_field_password(USERS_PASSWORD)
         # Шаг 4	Нажать Login
         login_page.click_btn_login()
-        login_page.expect_to_have_url("/inventory.html")
+        login_page.expect_to_have_url(URL_INV)
         # Шаг 5	Найти товар "Sauce Labs Backpack"
         inventory_page = InventoryPage(page)
         inventory_page.check_backpack_visible()
