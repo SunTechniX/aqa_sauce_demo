@@ -24,9 +24,9 @@ class TestCheckout:
         login_page.expect_to_have_url("/inventory.html")
         # Шаг 5	Найти товар "Sauce Labs Backpack"
         inventory_page = InventoryPage(page)
-        inventory_page.check_backpack1_visible()
+        inventory_page.check_backpack_visible()
         # Шаг 6	Сохранить цену товара
-        price1 = inventory_page.get_backpack1_price()
+        price1 = inventory_page.get_backpack_price()
         inventory_page.check_is_price()
         print(f"'{price1}'")
         # Шаг 7	Нажать "Add to cart" для товара
