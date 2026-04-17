@@ -9,10 +9,10 @@ from pages.login_page import LoginPage
 class TestCheckout:
 
     def test_check_001(self, page):
-        # Шаг 1 Открыть сайт
-        expect(page).to_have_url(URL_BASE_ROOT)
-
         login_page = LoginPage(page)
+        # Шаг 1 Открыть сайт
+        login_page.open()
+        expect(page).to_have_url(URL_BASE_ROOT)
         # Шаг 2	Ввести логин
         login_page.fill_username(USER1_NAME)
         login_page.check_field_username(USER1_NAME)
