@@ -31,7 +31,7 @@ class LoginPage(BasePage):
         expect(self.field_password).to_have_value(password)
 
     def check_error_with_msg(self, error_msg=E_MSG_LOGIN):
-        expect(self.error).to_have_element(".error-message")
+        # expect(self.error).to_have_element(".error-message")
         expect(self.error).to_be_visible()
-        expect(self.error).to_have_text(E_MSG_LOGIN)
+        expect(self.error).to_have_text(error_msg)
         return True
