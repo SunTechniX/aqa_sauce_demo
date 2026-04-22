@@ -6,8 +6,18 @@ from pages.inventory_page import InventoryPage
 from pages.login_page import LoginPage
 
 
+HEAD_FLAG = False
+
+
 class TestAuth:
 
+
+    # @pytest.mark.flaky(reruns=2, rerun_dalay=2)
+    @pytest.mark.parametrize("page",
+                             [(HEAD_FLAG, "chrome"),
+                              (HEAD_FLAG, "safari"),
+                              (HEAD_FLAG, "firefox")],
+                             indirect=True)
     def test_auth_001(self, page):
         """ Успешный вход со стандартным пользователем """
         login_page = LoginPage(page)
@@ -26,19 +36,20 @@ class TestAuth:
         inventory_page = InventoryPage(page)
         assert inventory_page.have_title("Products"), "Заголовок не тот"
 
+    @pytest.mark.flaky
     @pytest.mark.parametrize(
         "page,username,password,error_msg",
-        [((True, 123), USER1_NAME, "wrong_password", E_MSG_LOGIN),
-         (False, USER_FAKE_NAME, USERS_PASSWORD, E_MSG_LOGIN),
-         (True, "", USERS_PASSWORD, E_MSG_LOGIN_USERNAME),
-         (True, USER1_NAME, "", E_MSG_LOGIN_PASSWORD),
-         (True, "admin' OR 1=1", "any", E_MSG_LOGIN),
-         (True, "' OR '1'='1", "any", E_MSG_LOGIN),
-         (True, "1 UNION SELECT username, password FROM users", "any",
+        [(HEAD_FLAG, USER1_NAME, "wrong_password", E_MSG_LOGIN),
+         (HEAD_FLAG, USER_FAKE_NAME, USERS_PASSWORD, E_MSG_LOGIN),
+         (HEAD_FLAG, "", USERS_PASSWORD, E_MSG_LOGIN_USERNAME),
+         (HEAD_FLAG, USER1_NAME, "", E_MSG_LOGIN_PASSWORD),
+         (HEAD_FLAG, "admin' OR 1=1", "any", E_MSG_LOGIN),
+         (HEAD_FLAG, "' OR '1'='1", "any", E_MSG_LOGIN),
+         (HEAD_FLAG, "1 UNION SELECT username, password FROM users", "any",
           E_MSG_LOGIN),
-         (True, "1 AND (SELECT COUNT(*) FROM users WHERE id=5)=1", "any",
+         (HEAD_FLAG, "1 AND (SELECT COUNT(*) FROM users WHERE id=5)=1", "any",
           E_MSG_LOGIN),
-         (True, "<script>alert(1)</script>", "any", E_MSG_LOGIN)],
+         (HEAD_FLAG, "<script>alert(1)</script>", "any", E_MSG_LOGIN)],
         indirect = ["page"]
         )
     def test_auth_003_004_005_006_007_008(self, page, username, password, error_msg):
