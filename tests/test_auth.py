@@ -31,7 +31,7 @@ class TestAuth:
         login_page.check_field_password(USERS_PASSWORD)
         # Шаг 4	Нажать Login
         login_page.click_btn_login()
-        login_page.expect_to_have_url("/inventory.html")
+        login_page.expect_to_have_url("/inventory.html1")
         # Шаг 5	Найти товар "Sauce Labs Backpack"
         inventory_page = InventoryPage(page)
         assert inventory_page.have_title("Products"), "Заголовок не тот"

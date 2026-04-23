@@ -13,8 +13,9 @@ def pytest_addoption(parser):
 
 @pytest.fixture
 def page(request):
-    browser_ = "chrome"
+    browser_ = "_X_"
     if hasattr(request, "param"):
+        browser_ = "chrome"
         if isinstance(request.param, tuple):
             headless_ = request.param[0]
             if len(request.param) > 1:
