@@ -1,4 +1,3 @@
-import allure
 from playwright.sync_api import expect
 
 from config.base import URL_BASE_ROOT
@@ -9,7 +8,6 @@ from pages.login_page import LoginPage
 
 class TestCheckout:
 
-    @allure.testcase()
     def test_check_001(self, page):
         login_page = LoginPage(page)
         # Шаг 1 Открыть сайт

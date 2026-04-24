@@ -1,3 +1,4 @@
+import allure
 import pytest
 
 from config.base import E_MSG_LOGIN, E_MSG_LOGIN_USERNAME, E_MSG_LOGIN_PASSWORD
@@ -6,13 +7,18 @@ from pages.inventory_page import InventoryPage
 from pages.login_page import LoginPage
 
 
-HEAD_FLAG = False
+HEAD_FLAG = True
 
-
+@allure.epic("Авторизация")
+@allure.parent_suite("Авторизация")
+@allure.feature("Логин по имени и паролю")
+@allure.suite("Логин по имени и паролю")
 class TestAuth:
 
-
+    @allure.story("Успешный вход")
+    @allure.sub_suite("Успешный вход")
     # @pytest.mark.flaky(reruns=2, rerun_dalay=2)
+    @allure.title("auth_001 Успешный вход")
     @pytest.mark.parametrize("page",
                              [(HEAD_FLAG, "chrome"),
                               (HEAD_FLAG, "safari"),
@@ -36,6 +42,8 @@ class TestAuth:
         inventory_page = InventoryPage(page)
         assert inventory_page.have_title("Products"), "Заголовок не тот"
 
+    @allure.story("Негативные тесты")
+    @allure.title("auth_003-008 Вход с неверными данными")
     @pytest.mark.flaky
     @pytest.mark.parametrize(
         "page,username,password,error_msg",
@@ -68,11 +76,7 @@ class TestAuth:
         """
         login_page = LoginPage(page)
         login_page.open()
-        login_page.fill_username(username)
-        login_page.check_field_username(username)
-        login_page.fill_password(password)
-        login_page.check_field_password(password)
-        login_page.click_btn_login()
+        login_page.login_procedure(username, password)
         assert login_page.check_error_with_msg(error_msg), "Что-то пошло не так!"
 
 
