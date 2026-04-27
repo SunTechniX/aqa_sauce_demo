@@ -1,5 +1,5 @@
 from playwright.sync_api import expect
-
+import pytest
 from config.base import URL_BASE_ROOT
 from config.users import USER1_NAME, USERS_PASSWORD
 from pages.inventory_page import InventoryPage
@@ -8,6 +8,9 @@ from pages.login_page import LoginPage
 
 class TestCheckout:
 
+    @pytest.mark.parametrize("page",
+                             [(True, "chrome")],
+                             indirect=True)
     def test_check_001(self, page):
         login_page = LoginPage(page)
         # Шаг 1 Открыть сайт
@@ -17,7 +20,7 @@ class TestCheckout:
         login_page.fill_username(USER1_NAME)
         login_page.check_field_username(USER1_NAME)
         # Шаг 3	Ввести пароль
-        login_page.fill_password(USERS_PASSWORD)
+        login_page.fill_password(USERS_PASSWORD + "2")
         login_page.check_field_password(USERS_PASSWORD)
         # Шаг 4	Нажать Login
         login_page.click_btn_login()

@@ -1,5 +1,7 @@
+import allure
 import pytest
 from playwright.sync_api import sync_playwright
+from pytest_rerunfailures import pytest_runtest_makereport
 
 from config.base import URL_BASE
 
@@ -48,3 +50,32 @@ def page(request):
         page.set_default_timeout(4_000)  # 1_100
         yield page
         browser.close()
+
+
+@pytest.fixture
+def page_at():
+    with (sync_playwright() as drv):
+        drv_bro = drv.chromium
+        browser = drv_bro.launch(headless=False, slow_mo=500)
+        page_ = browser.new_page()
+        page_.set_default_timeout(4_000)  # 1_100
+        yield page_
+        browser.close()
+
+
+# @pytest.hookimpl(tryfirst=True, wrapper=True)
+# def pytest_runtest_makereport(item, call):
+#     rep = yield
+#     node = rep.nodeid.replace("::", "_").replace(".", "_")
+#     file_path = f"screenshot_{node}.png"
+#     if rep.when == "call" and rep.failed:
+#         page_ = item.funcargs.get("page")
+#         page_.screenshot(path=file_path)
+#
+#         with open(file_path, "rb") as f:
+#             allure.attach(
+#                 f.read(),
+#                 name=f"Кадр при падении '{item.name}'",
+#                 attachment_type=allure.attachment_type.PNG
+#             )
+#     return rep
