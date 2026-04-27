@@ -1,3 +1,5 @@
+allure_rep/
+scr_shots/
 .venv/
 venv/
 .idea/
