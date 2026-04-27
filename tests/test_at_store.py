@@ -24,5 +24,3 @@ def test_at_auth_color(page_at):
         #     )
         # print(f"{attr=}")
         # page.get_by_role("button", name=" Login").click()
-
-
