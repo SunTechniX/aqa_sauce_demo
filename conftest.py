@@ -6,6 +6,9 @@ from config.users import USER1_NAME, USERS_PASSWORD
 from pages.login_page import LoginPage
 
 
+HEAD_FLAG = True
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--bro", action="store", default="chrome",
@@ -25,7 +28,7 @@ def page(request):
         else:
             headless_ = request.param
     else:
-        headless_ = False
+        headless_ = True  # HEAD_FLAG
     with (sync_playwright() as drv):
         bro_name = request.config.getoption("--bro")
         if browser_ == "chrome":
@@ -64,7 +67,7 @@ def login(request, page):
 def page_at():
     with (sync_playwright() as drv):
         drv_bro = drv.chromium
-        browser = drv_bro.launch(headless=False, slow_mo=500)
+        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
         page_ = browser.new_page()
         page_.set_default_timeout(4_000)  # 1_100
         yield page_

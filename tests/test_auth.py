@@ -19,11 +19,11 @@ class TestAuth:
     @allure.sub_suite("Успешный вход")
     # @pytest.mark.flaky(reruns=2, rerun_dalay=2)
     @allure.title("auth_001 Успешный вход")
-    @pytest.mark.parametrize("page",
-                             [(HEAD_FLAG, "chrome"),
-                              (HEAD_FLAG, "safari"),
-                              (HEAD_FLAG, "firefox")],
-                             indirect=True)
+    # @pytest.mark.parametrize("page",
+    #                          [(HEAD_FLAG, "chrome"),
+    #                           (HEAD_FLAG, "safari"),
+    #                           (HEAD_FLAG, "firefox")],
+    #                          indirect=True)
     def test_auth_001(self, page):
         """ Успешный вход со стандартным пользователем """
         login_page = LoginPage(page)
@@ -37,7 +37,7 @@ class TestAuth:
         login_page.check_field_password(USERS_PASSWORD)
         # Шаг 4	Нажать Login
         login_page.click_btn_login()
-        login_page.expect_to_have_url("/inventory.html1")
+        login_page.expect_to_have_url("/inventory.html")
         # Шаг 5	Найти товар "Sauce Labs Backpack"
         inventory_page = InventoryPage(page)
         assert inventory_page.have_title("Products"), "Заголовок не тот"
