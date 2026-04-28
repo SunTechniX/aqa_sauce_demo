@@ -59,7 +59,7 @@ jobs:
           path: allure-results
 
       - name: Generate Allure Report (Official)
-        uses: allure-framework/allure-action@v2  # Официальный, поддерживаемый экшен
+        uses: allure-framework/allure-action@v1  # Официальный, поддерживаемый экшен
         with:
           allure_results: allure-results
           allure_report: allure-report
