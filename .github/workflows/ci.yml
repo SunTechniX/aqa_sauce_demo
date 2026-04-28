@@ -62,13 +62,26 @@ jobs:
         uses: allure-framework/allure-action@main
         with:
           report-directory: ./allure-report
-          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-        uses: peaceiris/actions-gh-pages@v4
+      # ✅ Вместо peaceiris/actions-gh-pages используем actions/upload-pages-artifact
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-report
-          destination_dir: reports
-          force_orphan: true
+          path: allure-report
+
+  # Отдельный job для Pages
+  deploy:
+    needs: report
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
