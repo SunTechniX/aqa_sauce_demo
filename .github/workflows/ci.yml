@@ -55,20 +55,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: allure-results-*
-          merge-multiple: true  # Сливает все файлы в одну папку без вложенных директорий
+          merge-multiple: true
           path: allure-results
 
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@master
+        uses: simple-elf/allure-report-action@v1.8  # Зафиксированная версия вместо @master
         with:
           allure_results: allure-results
           allure_report: allure-report
-          history: true
+          history: false
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'  # Проверка ветки
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: allure-report
           destination_dir: reports
+          force_orphan: true
