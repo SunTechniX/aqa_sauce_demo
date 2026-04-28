@@ -4,6 +4,8 @@ from playwright.sync_api import sync_playwright
 from pytest_rerunfailures import pytest_runtest_makereport
 
 from config.base import URL_BASE
+from config.users import USER1_NAME, USERS_PASSWORD
+from pages.login_page import LoginPage
 
 
 def pytest_addoption(parser):
@@ -51,6 +53,13 @@ def page(request):
         yield page
         browser.close()
 
+@pytest.fixture(params=[(USER1_NAME, USERS_PASSWORD)])
+def login(request, page):
+    username, password = request.param
+    login_page = LoginPage(page)
+    login_page.open()
+    login_page.login_procedure(username, password)
+    yield login_page.page
 
 @pytest.fixture
 def page_at():
