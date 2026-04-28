@@ -1,3 +1,4 @@
+import allure
 from playwright.sync_api import expect
 import pytest
 from config.base import URL_BASE_ROOT
@@ -7,6 +8,8 @@ from pages.inventory_page import InventoryPage
 from pages.login_page import LoginPage
 
 
+@allure.epic("SauceDemo")
+@allure.parent_suite("SauceDemo")
 class TestCheckout:
 
     @pytest.mark.parametrize("page",

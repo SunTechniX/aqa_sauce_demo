@@ -9,10 +9,10 @@ from pages.login_page import LoginPage
 
 HEAD_FLAG = True
 
-@allure.epic("Авторизация")
-@allure.parent_suite("Авторизация")
-@allure.feature("Логин по имени и паролю")
-@allure.suite("Логин по имени и паролю")
+@allure.epic("SauceDemo")
+@allure.parent_suite("SauceDemo")
+@allure.feature("Авторизация - Логин по имени и паролю")
+@allure.suite("Авторизация - Логин по имени и паролю")
 class TestAuth:
 
     @allure.story("Успешный вход")
