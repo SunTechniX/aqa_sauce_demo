@@ -8,6 +8,11 @@ on:
     branches: [ main, develop ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -58,30 +63,23 @@ jobs:
           merge-multiple: true
           path: allure-results
 
+      - name: Install Allure CLI
+        run: |
+          wget -q https://github.com/allure-framework/allure2/releases/download/2.39.0/allure-2.39.0.tgz
+          tar -xf allure-2.39.0.tgz -C /tmp/
+          echo "/tmp/allure-2.39.0/bin" >> $GITHUB_PATH
+
       - name: Generate Allure Report
-        uses: allure-framework/allure-action@main
-        with:
-          report-directory: ./allure-report
+        run: |
+          allure generate allure-results -o allure-report --clean
 
-      # ✅ Вместо peaceiris/actions-gh-pages используем actions/upload-pages-artifact
-      - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: allure-report
-
-  # Отдельный job для Pages
-  deploy:
-    needs: report
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          destination_dir: reports
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
