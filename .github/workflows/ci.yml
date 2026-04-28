@@ -11,11 +11,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [chromium]  # Добавьте firefox, webkit для параллельного запуска
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,14 +27,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Install Playwright browser
-        run: playwright install --with-deps ${{ matrix.browser }}
+        run: playwright install --with-deps chromium
 
       - name: Run tests
         run: |
           pytest tests/ \
             --alluredir=allure-results \
             --clean-alluredir \
-            --browser=${{ matrix.browser }} \
             -v \
             --tb=short
 
@@ -47,7 +41,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-${{ matrix.browser }}-${{ github.run_number }}
+          name: allure-results-${{ github.run_number }}
           path: allure-results/
           retention-days: 7
 
@@ -57,21 +51,19 @@ jobs:
     if: always()
 
     steps:
-      - name: Download artifacts
+      - name: Download Allure artifacts
         uses: actions/download-artifact@v4
         with:
-          path: downloaded-artifacts
-
-      - name: Merge results
-        run: |
-          mkdir -p merged-allure-results
-          find downloaded-artifacts -type d -name "allure-results" -exec cp -r {}/* merged-allure-results/ \; || true
+          pattern: allure-results-*
+          merge-multiple: true  # Сливает все файлы в одну папку без вложенных директорий
+          path: allure-results
 
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@master
         with:
-          allure_results: merged-allure-results
+          allure_results: allure-results
           allure_report: allure-report
+          history: true
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main'
