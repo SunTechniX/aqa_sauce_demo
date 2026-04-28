@@ -10,7 +10,7 @@ from pages.login_page import LoginPage
 class TestCheckout:
 
     @pytest.mark.parametrize("page",
-                             [(False, "chrome")],
+                             [(True, "chrome")],
                              indirect=True)
     def test_check_001(self, page):
         login_page = LoginPage(page)

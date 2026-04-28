@@ -1,9 +1,7 @@
 import allure
 import pytest
 from playwright.sync_api import sync_playwright
-from pytest_rerunfailures import pytest_runtest_makereport
 
-from config.base import URL_BASE
 from config.users import USER1_NAME, USERS_PASSWORD
 from pages.login_page import LoginPage
 
@@ -53,6 +51,7 @@ def page(request):
         yield page
         browser.close()
 
+@allure.step("Логин в магазин: '{USER1_NAME}' / 'USERS_PASSWORD'")
 @pytest.fixture(params=[(USER1_NAME, USERS_PASSWORD)])
 def login(request, page):
     username, password = request.param
