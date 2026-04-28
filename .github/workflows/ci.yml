@@ -58,8 +58,8 @@ jobs:
           merge-multiple: true
           path: allure-results
 
-      - name: Generate Allure Report (Official)
-        uses: allure-framework/allure-action@v1  # Официальный, поддерживаемый экшен
+      - name: Generate Allure Report
+        uses: allure-framework/allure-action@main  # ✅ Используем main вместо v1
         with:
           allure_results: allure-results
           allure_report: allure-report
