@@ -96,7 +96,7 @@ jobs:
           allure generate allure-results -o allure-report --clean
 
       - name: 📦 Archive Allure Report
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           cd allure-report
           zip -r ../allure-report-${{ github.run_number }}.zip .
@@ -105,7 +105,7 @@ jobs:
           ls -lh allure-report-${{ github.run_number }}.zip
 
       - name: 📎 Upload Report Archive
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-archive-${{ github.run_number }}
@@ -113,7 +113,7 @@ jobs:
           retention-days: 30
 
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -124,7 +124,7 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
 
       - name: 📋 Post Allure Report link to Summary
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME="${{ github.event.repository.name }}"
