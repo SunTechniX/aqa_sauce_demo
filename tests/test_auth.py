@@ -17,7 +17,7 @@ class TestAuth:
 
     @allure.story("Успешный вход")
     @allure.sub_suite("Успешный вход")
-    # @pytest.mark.flaky(reruns=2, rerun_dalay=2)
+    # @pytest.mark.flaky(reruns=2, rerun_delay=2)
     @allure.title("auth_001 Успешный вход")
     # @pytest.mark.parametrize("page",
     #                          [(HEAD_FLAG, "chrome"),

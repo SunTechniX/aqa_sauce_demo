@@ -66,6 +66,26 @@ def login(request, page):
 
 
 @pytest.fixture
+def mobile(request):
+    browser_ = "chrome"
+    device_id = "Pixel 4"
+    if hasattr(request, "param") and  isinstance(request.param, tuple):
+        if len(request.param) == 2:
+            browser_, device_id = request.param
+
+    with (sync_playwright() as drv):
+        # print("\n".join(list(drv.devices.keys())))
+        drv_bro = getattr(drv, browser_)
+        browser = drv_bro.launch(headless=False, slow_mo=500)
+        print(drv.devices[device_id])
+        context = browser.new_context(**drv.devices[device_id])
+        mobile_ = context.new_page()
+        mobile_.set_default_timeout(5_000)  # 1_100
+        yield mobile_
+        browser.close()
+
+
+@pytest.fixture
 def page_at():
     with (sync_playwright() as drv):
         drv_bro = drv.chromium

@@ -6,8 +6,8 @@ from config.base import URL_BASE
 
 class BasePage:
 
-    def __init__(self, page):
-        self.page = page
+    def __init__(self, page_):
+        self.page = page_
         # self.page.set_default_timeout(3_000)
 
     @allure.step("Отрываем страницу {url}")

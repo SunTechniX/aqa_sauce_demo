@@ -7,8 +7,8 @@ from pages.base_page import BasePage
 
 class LoginPage(BasePage):
 
-    def __init__(self, page):
-        super().__init__(page)
+    def __init__(self, page_):
+        super().__init__(page_)
         self.field_username = self.page.locator("#user-name")
         self.field_password = self.page.locator("#password")
         # self.btn_login = self.page.locator("[data-test='login-button']")
@@ -27,6 +27,10 @@ class LoginPage(BasePage):
     @allure.step("Нажать кнопку 'Login'")
     def click_btn_login(self):
         self.btn_login.click()
+
+    @allure.step("Тап по кнопке 'Login'")
+    def tap_btn_login(self):
+        self.btn_login.tap()
 
     @allure.step("Проверить, что в поле 'Пользователь' есть текст: '{username}'")
     def check_field_username(self, username):
