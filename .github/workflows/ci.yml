@@ -6,7 +6,22 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:
+  workflow_dispatch:  # ← Ручной запуск
+    inputs:
+      test_marker:
+        description: 'Pytest marker to run (empty = all tests)'
+        required: false
+        default: ''
+        type: string
+      browser:
+        description: 'Browser to use'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
 
 permissions:
   contents: write
@@ -43,15 +58,21 @@ jobs:
           echo "pytest-version=$(pip show pytest | grep Version | cut -d' ' -f2)" >> $GITHUB_OUTPUT
 
       - name: Install Playwright browser
-        run: playwright install --with-deps chromium webkit
+        run: playwright install --with-deps ${{ inputs.browser || 'chromium' }}
 
-      - name: Run tests
+      - name: 🎯 Run tests (with optional marker)
         run: |
-          pytest tests/ \
-            --alluredir=allure-results \
-            --clean-alluredir \
-            -v \
-            --tb=short
+          # Формируем команду: если маркер указан — добавляем -m
+          if [ -n "${{ inputs.test_marker }}" ]; then
+            MARKER_ARG="-m '${{ inputs.test_marker }}'"
+            echo "🏷️ Running tests with marker: ${{ inputs.test_marker }}"
+          else
+            MARKER_ARG=""
+            echo "🏷️ Running ALL tests (no marker filter)"
+          fi
+          
+          # Запускаем pytest с динамическим аргументом
+          eval "pytest tests/ --alluredir=allure-results --clean-alluredir -v --tb=short $MARKER_ARG"
 
       - name: Upload Allure results
         if: always()

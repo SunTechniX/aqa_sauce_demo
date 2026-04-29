@@ -13,6 +13,7 @@ HEAD_FLAG = True
 @allure.parent_suite("SauceDemo")
 @allure.feature("Авторизация - Логин по имени и паролю")
 @allure.suite("Авторизация - Логин по имени и паролю")
+@pytest.mark.smoke
 class TestAuth:
 
     @allure.story("Успешный вход")

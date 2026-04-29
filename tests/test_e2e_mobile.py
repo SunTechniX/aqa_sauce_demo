@@ -12,6 +12,7 @@ from pages.login_page import LoginPage
 @allure.parent_suite("SauceDemo mobile")
 class TestCheckoutMobile:
 
+    @pytest.mark.test
     @pytest.mark.parametrize("mobile", [("webkit", "iPhone 11"),
                                         ("chromium", "Pixel 5")], indirect=True)
     def test_check_mobile_001(self, mobile):

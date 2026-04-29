@@ -76,7 +76,7 @@ def mobile(request):
     with (sync_playwright() as drv):
         # print("\n".join(list(drv.devices.keys())))
         drv_bro = getattr(drv, browser_)
-        browser = drv_bro.launch(headless=False, slow_mo=500)
+        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
         print(drv.devices[device_id])
         context = browser.new_context(**drv.devices[device_id])
         mobile_ = context.new_page()

@@ -12,6 +12,7 @@ from pages.login_page import LoginPage
 @allure.parent_suite("SauceDemo")
 class TestCheckout:
 
+    @pytest.mark.e2e
     @pytest.mark.parametrize("page",
                              [(True, "chrome")],
                              indirect=True)
