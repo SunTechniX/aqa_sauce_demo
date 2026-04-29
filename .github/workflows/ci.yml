@@ -79,36 +79,32 @@ jobs:
           echo "🔍 Creating environment and executor files..."
           
           # Создаём environment.properties
-          cat > allure-results/environment.properties <<EOF
-          Python.version=${{ needs.test.outputs.python-version }}
-          OS.name=$(uname -s)
-          OS.version=$(uname -r)
-          Playwright.version=${{ needs.test.outputs.playwright-version }}
-          Pytest.version=${{ needs.test.outputs.pytest-version }}
-          Repository=${{ github.repository }}
-          Branch=${{ github.ref_name }}
-          Run.Number=${{ github.run_number }}
-          Run.ID=${{ github.run_id }}
-          Triggered.by=${{ github.actor }}
-          Workflow=${{ github.workflow }}
-          Date=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
-          EOF
+          echo "Python.version=${{ needs.test.outputs.python-version }}" > allure-results/environment.properties
+          echo "OS.name=$(uname -s)" >> allure-results/environment.properties
+          echo "OS.version=$(uname -r)" >> allure-results/environment.properties
+          echo "Playwright.version=${{ needs.test.outputs.playwright-version }}" >> allure-results/environment.properties
+          echo "Pytest.version=${{ needs.test.outputs.pytest-version }}" >> allure-results/environment.properties
+          echo "Repository=${{ github.repository }}" >> allure-results/environment.properties
+          echo "Branch=${{ github.ref_name }}" >> allure-results/environment.properties
+          echo "Run.Number=${{ github.run_number }}" >> allure-results/environment.properties
+          echo "Run.ID=${{ github.run_id }}" >> allure-results/environment.properties
+          echo "Triggered.by=${{ github.actor }}" >> allure-results/environment.properties
+          echo "Workflow=${{ github.workflow }}" >> allure-results/environment.properties
+          echo "Date=$(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> allure-results/environment.properties
           
           # Создаём executor.json
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/"
           
-          cat > allure-results/executor.json <<EOF
-          {
-            "name": "GitHub Actions",
-            "type": "github-actions",
-            "url": "${RUN_URL}",
-            "buildOrder": ${{ github.run_number }},
-            "buildName": "${{ github.workflow }} #${{ github.run_number }}",
-            "buildUrl": "${RUN_URL}",
-            "reportUrl": "${REPORT_URL}"
-          }
-          EOF
+          echo "{" > allure-results/executor.json
+          echo "  \"name\": \"GitHub Actions\"," >> allure-results/executor.json
+          echo "  \"type\": \"github-actions\"," >> allure-results/executor.json
+          echo "  \"url\": \"${RUN_URL}\"," >> allure-results/executor.json
+          echo "  \"buildOrder\": ${{ github.run_number }}," >> allure-results/executor.json
+          echo "  \"buildName\": \"${{ github.workflow }} #${{ github.run_number }}\"," >> allure-results/executor.json
+          echo "  \"buildUrl\": \"${RUN_URL}\"," >> allure-results/executor.json
+          echo "  \"reportUrl\": \"${REPORT_URL}\"" >> allure-results/executor.json
+          echo "}" >> allure-results/executor.json
           
           echo "✅ Created files:"
           cat allure-results/environment.properties
@@ -126,7 +122,7 @@ jobs:
           allure generate allure-results -o allure-report --clean
 
       - name: 📦 Upload Allure Report (ZIP)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-${{ github.run_number }}
@@ -151,9 +147,12 @@ jobs:
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME="${{ github.event.repository.name }}"
           REPORT_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/reports/"
+          RUN_NUMBER="${{ github.run_number }}"
           
           echo "## 📊 Allure Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "[![Allure Report](https://img.shields.io/badge/📈_Allure-Report-blue?style=for-the-badge)](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**🔗 Online Report**: <a href=\"${REPORT_URL}\" target=\"_blank\">${REPORT_URL}</a>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "💡 Вы можете скачать allure-отчёт **allure-report-${RUN_NUMBER}.zip** внизу в секции артефактов." >> $GITHUB_STEP_SUMMARY
