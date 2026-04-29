@@ -1,0 +1,144 @@
+# .github/workflows/ci.yml
+name: Sauce Demo Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright browser
+        run: playwright install --with-deps chromium
+
+      - name: Run tests
+        run: |
+          pytest tests/ \
+            --alluredir=allure-results \
+            --clean-alluredir \
+            -v \
+            --tb=short
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ github.run_number }}
+          path: allure-results/
+          retention-days: 7
+
+  report:
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Download Allure artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: allure-results
+
+      - name: 📝 Generate environment.properties
+        run: |
+          # Создаём файл с информацией о среде
+          cat > allure-results/environment.properties << EOF
+          # Environment Information
+          Python.version = $(python --version | cut -d' ' -f2)
+          OS.name = $(uname -s)
+          OS.version = $(uname -r)
+          Playwright.version = $(playwright --version | cut -d' ' -f2)
+          Pytest.version = $(pytest --version | cut -d' ' -f2 | cut -d' ' -f1)
+          Repository = ${{ github.repository }}
+          Branch = ${{ github.ref_name }}
+          Run Number = ${{ github.run_number }}
+          Run ID = ${{ github.run_id }}
+          Triggered by = ${{ github.actor }}
+          Workflow = ${{ github.workflow }}
+          Date = $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          EOF
+          
+          echo "✅ Created environment.properties:"
+          cat allure-results/environment.properties
+
+      - name: Install Allure CLI
+        run: |
+          wget -q https://github.com/allure-framework/allure2/releases/download/2.39.0/allure-2.39.0.tgz
+          tar -xf allure-2.39.0.tgz -C /tmp/
+          echo "/tmp/allure-2.39.0/bin" >> $GITHUB_PATH
+
+      - name: Generate Allure Report
+        run: |
+          allure generate allure-results -o allure-report --clean
+
+      - name: 📦 Archive Allure Report
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: |
+          cd allure-report
+          zip -r ../allure-report-${{ github.run_number }}.zip .
+          cd ..
+          echo "Created archive: allure-report-${{ github.run_number }}.zip"
+          ls -lh allure-report-${{ github.run_number }}.zip
+
+      - name: 📎 Upload Report Archive
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-archive-${{ github.run_number }}
+          path: allure-report-${{ github.run_number }}.zip
+          retention-days: 30
+
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          destination_dir: reports
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
+      - name: 📋 Post Allure Report link to Summary
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+        run: |
+          REPO_OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+          REPORT_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/reports/"
+          ARCHIVE_NAME="allure-report-${{ github.run_number }}.zip"
+          
+          echo "## 📊 Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[![Allure Report](https://img.shields.io/badge/📈_Allure-Report-blue?style=for-the-badge)](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: \`${REPORT_URL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Download Report Archive" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔽 [Download **${ARCHIVE_NAME}**](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> 💡 Archive contains complete Allure report with environment info" >> $GITHUB_STEP_SUMMARY

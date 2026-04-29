@@ -1,3 +1,4 @@
+import allure
 from playwright.sync_api import expect
 
 from config.base import URL_BASE
@@ -5,8 +6,14 @@ from config.base import URL_BASE
 
 class BasePage:
 
-    def __init__(self, page):
-        self.page = page
+    def __init__(self, page_):
+        self.page = page_
+        # self.page.set_default_timeout(3_000)
 
+    @allure.step("Отрываем страницу {url}")
+    def open(self, url=URL_BASE):
+        self.page.goto(url)
+
+    @allure.step("проверяем, что открыта страница по url: {url_sub}")
     def expect_to_have_url(self, url_sub: str):
         expect(self.page).to_have_url(URL_BASE + url_sub)
