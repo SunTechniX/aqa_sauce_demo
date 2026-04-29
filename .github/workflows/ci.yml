@@ -65,16 +65,30 @@ jobs:
 
       - name: 📝 Generate environment.properties + executor.json
         run: |
-          # Получаем версии корректно
-          PLAYWRIGHT_VER=$(playwright --version 2>&1 | awk '{print $NF}')
-          if [ -z "$PLAYWRIGHT_VER" ] || [ "$PLAYWRIGHT_VER" = "Version" ]; then
-            PLAYWRIGHT_VER=$(python -c "from playwright.sync_api import __version__; print(__version__)" 2>/dev/null || echo "unknown")
+          echo "🔍 Debug: Getting versions..."
+          
+          # Playwright version - пробуем разные способы
+          echo "Trying: playwright --version"
+          playwright --version 2>&1 || echo "Command failed"
+          
+          PW_VER=$(playwright --version 2>&1 | tail -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
+          if [ -z "$PW_VER" ]; then
+            PW_VER=$(python -c "import playwright; print(playwright.__version__)" 2>&1 || echo "")
           fi
+          PLAYWRIGHT_VER=${PW_VER:-"unknown"}
           
-          PYTEST_VER=$(python -c "import pytest; print(pytest.__version__)" 2>/dev/null || echo "unknown")
-          PYTHON_VER=$(python --version 2>&1 | awk '{print $2}')
+          # Pytest version
+          PYTEST_VER=$(python -c "import pytest; print(pytest.__version__)" 2>&1 || echo "unknown")
           
-          # Создаём файл с информацией о среде (без пробелов в названиях)
+          # Python version
+          PYTHON_VER=$(python --version 2>&1 | cut -d' ' -f2)
+          
+          echo "✅ Versions found:"
+          echo "  Python: $PYTHON_VER"
+          echo "  Playwright: $PLAYWRIGHT_VER"
+          echo "  Pytest: $PYTEST_VER"
+          
+          # Создаём environment.properties
           cat > allure-results/environment.properties << EOF
           Python.version=${PYTHON_VER}
           OS.name=$(uname -s)
@@ -90,30 +104,32 @@ jobs:
           Date=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           EOF
           
-          # Создаём executor.json для секции Executors
+          # Создаём executor.json (ОЧЕНЬ ВАЖНО: до генерации отчёта!)
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/"
           
           cat > allure-results/executor.json << EOF
-          [
-            {
-              "name": "GitHub Actions",
-              "type": "github-actions",
-              "url": "${RUN_URL}",
-              "buildOrder": ${{ github.run_number }},
-              "buildName": "${{ github.workflow }} #${{ github.run_number }}",
-              "buildUrl": "${RUN_URL}",
-              "reportUrl": "${REPORT_URL}",
-              "reportName": "Allure Report"
-            }
-          ]
+          {
+            "name": "GitHub Actions",
+            "type": "github-actions",
+            "url": "${RUN_URL}",
+            "buildOrder": ${{ github.run_number }},
+            "buildName": "${{ github.workflow }} #${{ github.run_number }}",
+            "buildUrl": "${RUN_URL}",
+            "reportUrl": "${REPORT_URL}"
+          }
           EOF
           
-          echo "✅ Created environment.properties:"
+          echo ""
+          echo "✅ Created files:"
+          echo "--- environment.properties ---"
           cat allure-results/environment.properties
           echo ""
-          echo "✅ Created executor.json:"
+          echo "--- executor.json ---"
           cat allure-results/executor.json
+          echo ""
+          echo "--- Files in allure-results ---"
+          ls -la allure-results/ | grep -E "(environment|executor)"
 
       - name: 📋 Post Allure Report link to Summary
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
