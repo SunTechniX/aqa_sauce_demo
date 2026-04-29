@@ -16,7 +16,7 @@ on:
       browser:
         description: 'Browser to use'
         required: false
-        default: 'chromium'
+        default: 'chromium webkit'
         type: choice
         options:
           - chromium
@@ -58,7 +58,7 @@ jobs:
           echo "pytest-version=$(pip show pytest | grep Version | cut -d' ' -f2)" >> $GITHUB_OUTPUT
 
       - name: Install Playwright browser
-        run: playwright install --with-deps ${{ inputs.browser || 'chromium' }}
+        run: playwright install --with-deps ${{ inputs.browser }}
 
       - name: 🎯 Run tests (with optional marker)
         run: |
