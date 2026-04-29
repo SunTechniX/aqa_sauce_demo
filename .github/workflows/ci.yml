@@ -6,7 +6,7 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:  # ← Ручной запуск
+  workflow_dispatch:
     inputs:
       test_marker:
         description: 'Pytest marker to run (empty = all tests)'
