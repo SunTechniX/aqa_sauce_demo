@@ -101,7 +101,7 @@ jobs:
           cd allure-report
           zip -r ../allure-report-${{ github.run_number }}.zip .
           cd ..
-          echo "✅ Created archive: allure-report-${{ github.run_number }}.zip"
+          echo "Created archive: allure-report-${{ github.run_number }}.zip"
           ls -lh allure-report-${{ github.run_number }}.zip
 
       - name: 📎 Upload Report Archive
