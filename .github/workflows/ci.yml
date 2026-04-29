@@ -65,28 +65,18 @@ jobs:
 
       - name: 📝 Generate environment.properties + executor.json
         run: |
-          echo "🔍 Debug: Getting versions..."
+          echo "🔍 Getting versions via pip..."
           
-          # Playwright version - пробуем разные способы
-          echo "Trying: playwright --version"
-          playwright --version 2>&1 || echo "Command failed"
+          # Playwright version через pip
+          PLAYWRIGHT_VER=$(pip show playwright 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
           
-          PW_VER=$(playwright --version 2>&1 | tail -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "")
-          if [ -z "$PW_VER" ]; then
-            PW_VER=$(python -c "import playwright; print(playwright.__version__)" 2>&1 || echo "")
-          fi
-          PLAYWRIGHT_VER=${PW_VER:-"unknown"}
-          
-          # Pytest version
-          PYTEST_VER=$(python -c "import pytest; print(pytest.__version__)" 2>&1 || echo "unknown")
+          # Pytest version через pip  
+          PYTEST_VER=$(pip show pytest 2>/dev/null | grep Version | cut -d' ' -f2 || echo "unknown")
           
           # Python version
           PYTHON_VER=$(python --version 2>&1 | cut -d' ' -f2)
           
-          echo "✅ Versions found:"
-          echo "  Python: $PYTHON_VER"
-          echo "  Playwright: $PLAYWRIGHT_VER"
-          echo "  Pytest: $PYTEST_VER"
+          echo "✅ Versions: Python=$PYTHON_VER, Playwright=$PLAYWRIGHT_VER, Pytest=$PYTEST_VER"
           
           # Создаём environment.properties
           cat > allure-results/environment.properties << EOF
@@ -104,7 +94,7 @@ jobs:
           Date=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
           EOF
           
-          # Создаём executor.json (ОЧЕНЬ ВАЖНО: до генерации отчёта!)
+          # Создаём executor.json
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/reports/"
           
@@ -120,16 +110,8 @@ jobs:
           }
           EOF
           
-          echo ""
-          echo "✅ Created files:"
-          echo "--- environment.properties ---"
+          echo "✅ Created environment.properties and executor.json"
           cat allure-results/environment.properties
-          echo ""
-          echo "--- executor.json ---"
-          cat allure-results/executor.json
-          echo ""
-          echo "--- Files in allure-results ---"
-          ls -la allure-results/ | grep -E "(environment|executor)"
 
       - name: 📋 Post Allure Report link to Summary
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
