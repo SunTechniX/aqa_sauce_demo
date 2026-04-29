@@ -68,11 +68,11 @@ jobs:
           # Создаём файл с информацией о среде
           cat > allure-results/environment.properties << EOF
           # Environment Information
-          Python.version = $(python --version | cut -d' ' -f2)
+          Python.version = $(python --version | awk '{print $2}')
           OS.name = $(uname -s)
           OS.version = $(uname -r)
-          Playwright.version = $(playwright --version | cut -d' ' -f2)
-          Pytest.version = $(pytest --version | cut -d' ' -f2 | cut -d' ' -f1)
+          Playwright.version = $(playwright --version 2>&1 | head -n1 | awk '{print $2}')
+          Pytest.version = $(python -c "import pytest; print(pytest.__version__)")
           Repository = ${{ github.repository }}
           Branch = ${{ github.ref_name }}
           Run Number = ${{ github.run_number }}
@@ -95,22 +95,14 @@ jobs:
         run: |
           allure generate allure-results -o allure-report --clean
 
-      - name: 📦 Archive Allure Report
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-        run: |
-          cd allure-report
-          zip -r ../allure-report-${{ github.run_number }}.zip .
-          cd ..
-          echo "Created archive: allure-report-${{ github.run_number }}.zip"
-          ls -lh allure-report-${{ github.run_number }}.zip
-
-      - name: 📎 Upload Report Archive
+      - name: 📦 Upload Allure Report (ZIP)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v4
         with:
-          name: allure-report-archive-${{ github.run_number }}
-          path: allure-report-${{ github.run_number }}.zip
+          name: allure-report-${{ github.run_number }}
+          path: allure-report/
           retention-days: 30
+          compression-level: 6
 
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
@@ -129,16 +121,22 @@ jobs:
           REPO_OWNER="${{ github.repository_owner }}"
           REPO_NAME="${{ github.event.repository.name }}"
           REPORT_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/reports/"
-          ARCHIVE_NAME="allure-report-${{ github.run_number }}.zip"
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          RUN_NUMBER="${{ github.run_number }}"
           
           echo "## 📊 Allure Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "[![Allure Report](https://img.shields.io/badge/📈_Allure-Report-blue?style=for-the-badge)](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL**: \`${REPORT_URL}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**🔗 Online Report**: [${REPORT_URL}](${REPORT_URL})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Download Report Archive" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🔽 [Download **${ARCHIVE_NAME}**](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts)" >> $GITHUB_STEP_SUMMARY
+          echo "🔽 [**Download allure-report-${RUN_NUMBER}.zip**](${ARTIFACT_URL})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "> 💡 Archive contains complete Allure report with environment info" >> $GITHUB_STEP_SUMMARY
+          echo "> 💡 Click the link above and scroll to **Artifacts** section at the bottom" >> $GITHUB_STEP_SUMMARY
+          echo "> " >> $GITHUB_STEP_SUMMARY
+          echo "> **Archive contains:**" >> $GITHUB_STEP_SUMMARY
+          echo "> - Complete HTML report (open \`index.html\` in browser)" >> $GITHUB_STEP_SUMMARY
+          echo "> - Environment info (Python, OS, Playwright versions)" >> $GITHUB_STEP_SUMMARY
+          echo "> - Test history and statistics" >> $GITHUB_STEP_SUMMARY
