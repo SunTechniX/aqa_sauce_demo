@@ -48,7 +48,8 @@ def page(request):
                 drv_bro = drv.chromium
 
         print(f"{browser_=} {bro_name=}")
-        browser = drv_bro.launch(headless=headless_, slow_mo=500)
+        slow_mo_ = 0 if headless_ else 500
+        browser = drv_bro.launch(headless=headless_, slow_mo=slow_mo_)
         page = browser.new_page()
         page.set_default_timeout(4_000)  # 1_100
         yield page
@@ -69,27 +70,42 @@ def login(request, page):
 def mobile(request):
     browser_ = "chrome"
     device_id = "Pixel 4"
-    if hasattr(request, "param") and  isinstance(request.param, tuple):
+    headless_ = True
+    if hasattr(request, "param") and isinstance(request.param, tuple):
         if len(request.param) == 2:
             browser_, device_id = request.param
-
+        elif len(request.param) == 3:
+            browser_, device_id, headless_ = request.param
     with (sync_playwright() as drv):
         # print("\n".join(list(drv.devices.keys())))
         drv_bro = getattr(drv, browser_)
-        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
-        print(drv.devices[device_id])
+        slow_mo_ = 0 if headless_ else 500
+        browser = drv_bro.launch(headless=headless_, slow_mo=slow_mo_)
+        # print(drv.devices[device_id])
         context = browser.new_context(**drv.devices[device_id])
         mobile_ = context.new_page()
         mobile_.set_default_timeout(5_000)  # 1_100
         yield mobile_
+        context.close()
         browser.close()
+
+
+@allure.title("Логин в магазин: '{USER1_NAME}' / 'USERS_PASSWORD'")
+@pytest.fixture(params=[(USER1_NAME, USERS_PASSWORD)])
+def login_mobile(request, mobile):
+    username, password = request.param
+    login_page = LoginPage(mobile)
+    login_page.open()
+    login_page.login_procedure(username, password, mobile_mode=True)
+    yield login_page.page
 
 
 @pytest.fixture
 def page_at():
     with (sync_playwright() as drv):
         drv_bro = drv.chromium
-        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
+        slow_mo_ = 0 if HEAD_FLAG else 500
+        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=slow_mo_)
         page_ = browser.new_page()
         page_.set_default_timeout(4_000)  # 1_100
         yield page_

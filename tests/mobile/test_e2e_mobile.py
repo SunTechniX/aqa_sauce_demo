@@ -14,8 +14,9 @@ class TestCheckoutMobile:
 
     @pytest.mark.test
     @pytest.mark.parametrize("mobile", [("webkit", "iPhone 11"),
-                                        ("chromium", "Pixel 5")], indirect=True)
-    def test_check_mobile_001(self, mobile):
+                                        ("chromium", "Pixel 5")],
+                             indirect=True)
+    def test_mobile_check_001(self, mobile):
         login_page = LoginPage(mobile)
         # Шаг 1 Открыть мобильный сайт
         login_page.open()
