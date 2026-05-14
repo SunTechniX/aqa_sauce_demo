@@ -1,5 +1,9 @@
 import allure
+from allure_commons.types import AttachmentType
 import pytest
+from datetime import datetime
+from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 from config.users import USER1_NAME, USERS_PASSWORD
@@ -48,11 +52,15 @@ def page(request):
                 drv_bro = drv.chromium
 
         print(f"{browser_=} {bro_name=}")
+        with allure.step(f"Браузер: {browser_} / {bro_name}, без окна: {headless_}"):
+            ...
         slow_mo_ = 0 if headless_ else 500
         browser = drv_bro.launch(headless=headless_, slow_mo=slow_mo_)
         page = browser.new_page()
         page.set_default_timeout(4_000)  # 1_100
         yield page
+        with allure.step("Браузер закрыт!"):
+            ...
         browser.close()
 
 
@@ -110,6 +118,33 @@ def page_at():
         page_.set_default_timeout(4_000)  # 1_100
         yield page_
         browser.close()
+
+
+@pytest.hookimpl(tryfirst=True, wrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome if hasattr(outcome, 'when') else outcome.get_result()
+    if rep.when == "call" and rep.failed:
+        print("ТЕСТ СЛОМАН!")
+        page_ = item.funcargs.get("page")
+        if page_:
+            print(f"{item.name=}")
+            print(f"{rep.nodeid=}")
+            time_stamp = (str(datetime.now())
+                          .replace(' ', '_')
+                          .replace(':', '_'))
+            screenshot_path = (
+                    Path("screenshots") / f"{item.name}_{time_stamp}.png")
+            screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+            page_.screenshot(path=str(screenshot_path))
+
+            with open(screenshot_path, "rb") as f:
+                allure.attach(
+                    f.read(),
+                    name=f"Скриншот при падении ({item.name})",
+                    attachment_type=AttachmentType.PNG
+                )
+    return rep
 
 
 # @pytest.hookimpl(tryfirst=True, wrapper=True)
