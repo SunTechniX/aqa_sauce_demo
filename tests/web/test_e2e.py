@@ -14,7 +14,7 @@ class TestCheckout:
 
     @pytest.mark.e2e
     @pytest.mark.parametrize("page",
-                             [(True, "chrome")],
+                             [(False, "chrome")],
                              indirect=True)
     def test_check_001(self, page):
         login_page = LoginPage(page)

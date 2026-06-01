@@ -9,6 +9,7 @@ class InvItemPage(CommonPage):
 
     def __init__(self, page):
         super().__init__(page)
+        self.app_logo = self.page.locator(".app_logo2")
         self.backpack_item = self.page \
             .locator(".inventory_details_container").filter(has_text=BACKPACK)
         self.backpack_name = self.backpack_item.page.get_by_text(BACKPACK)

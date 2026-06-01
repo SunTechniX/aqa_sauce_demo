@@ -1,5 +1,9 @@
 import allure
+from allure_commons.types import AttachmentType
 import pytest
+from datetime import datetime
+from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 from config.users import USER1_NAME, USERS_PASSWORD
@@ -48,10 +52,15 @@ def page(request):
                 drv_bro = drv.chromium
 
         print(f"{browser_=} {bro_name=}")
-        browser = drv_bro.launch(headless=headless_, slow_mo=500)
+        with allure.step(f"Браузер: {browser_} / {bro_name}, без окна: {headless_}"):
+            ...
+        slow_mo_ = 0 if headless_ else 500
+        browser = drv_bro.launch(headless=headless_, slow_mo=slow_mo_)
         page = browser.new_page()
         page.set_default_timeout(4_000)  # 1_100
         yield page
+        with allure.step("Браузер закрыт!"):
+            ...
         browser.close()
 
 
@@ -69,31 +78,73 @@ def login(request, page):
 def mobile(request):
     browser_ = "chrome"
     device_id = "Pixel 4"
-    if hasattr(request, "param") and  isinstance(request.param, tuple):
+    headless_ = True
+    if hasattr(request, "param") and isinstance(request.param, tuple):
         if len(request.param) == 2:
             browser_, device_id = request.param
-
+        elif len(request.param) == 3:
+            browser_, device_id, headless_ = request.param
     with (sync_playwright() as drv):
         # print("\n".join(list(drv.devices.keys())))
         drv_bro = getattr(drv, browser_)
-        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
-        print(drv.devices[device_id])
+        slow_mo_ = 0 if headless_ else 500
+        browser = drv_bro.launch(headless=headless_, slow_mo=slow_mo_)
+        # print(drv.devices[device_id])
         context = browser.new_context(**drv.devices[device_id])
         mobile_ = context.new_page()
         mobile_.set_default_timeout(5_000)  # 1_100
         yield mobile_
+        context.close()
         browser.close()
+
+
+@allure.title("Логин в магазин: '{USER1_NAME}' / 'USERS_PASSWORD'")
+@pytest.fixture(params=[(USER1_NAME, USERS_PASSWORD)])
+def login_mobile(request, mobile):
+    username, password = request.param
+    login_page = LoginPage(mobile)
+    login_page.open()
+    login_page.login_procedure(username, password, mobile_mode=True)
+    yield login_page.page
 
 
 @pytest.fixture
 def page_at():
     with (sync_playwright() as drv):
         drv_bro = drv.chromium
-        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=500)
+        slow_mo_ = 0 if HEAD_FLAG else 500
+        browser = drv_bro.launch(headless=HEAD_FLAG, slow_mo=slow_mo_)
         page_ = browser.new_page()
         page_.set_default_timeout(4_000)  # 1_100
         yield page_
         browser.close()
+
+
+@pytest.hookimpl(tryfirst=True, wrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    rep = outcome if hasattr(outcome, 'when') else outcome.get_result()
+    if rep.when == "call" and rep.failed:
+        print("ТЕСТ СЛОМАН!")
+        page_ = item.funcargs.get("page")
+        if page_:
+            print(f"{item.name=}")
+            print(f"{rep.nodeid=}")
+            time_stamp = (str(datetime.now())
+                          .replace(' ', '_')
+                          .replace(':', '_'))
+            screenshot_path = (
+                    Path("screenshots") / f"{item.name}_{time_stamp}.png")
+            screenshot_path.parent.mkdir(parents=True, exist_ok=True)
+            page_.screenshot(path=str(screenshot_path))
+
+            with open(screenshot_path, "rb") as f:
+                allure.attach(
+                    f.read(),
+                    name=f"Скриншот при падении ({item.name})",
+                    attachment_type=AttachmentType.PNG
+                )
+    return rep
 
 
 # @pytest.hookimpl(tryfirst=True, wrapper=True)

@@ -20,6 +20,14 @@ class LoginPage(BasePage):
     def fill_username(self, username):
         self.field_username.fill(username)
 
+    @allure.step("Ввести имя пользователя: '{username}'")
+    def fill_username_mobile_x(self, username):
+        self.page.evaluate("document.querySelector('#user-name').setAttribute('inputmode', 'text')")
+        # self.field_username.evaluate("() => setAttribute('inputmode', 'text')")
+        mode = self.field_username.get_attribute("inputmode")
+        print(f"\n{mode=}")
+        self.field_username.fill(username)
+
     @allure.step("Ввести пароль: '{password}'")
     def fill_password(self, password):
         self.field_password.fill(password)
@@ -41,10 +49,13 @@ class LoginPage(BasePage):
         expect(self.field_password).to_have_value(password)
 
     @allure.step("Процедура логина user: '{username}', password: '{password}'")
-    def login_procedure(self, username, password):
+    def login_procedure(self, username: str, password: str, mobile_mode: bool = False):
         self.fill_username(username)
         self.fill_password(password)
-        self.click_btn_login()
+        if mobile_mode:
+            self.tap_btn_login()
+        else:
+            self.click_btn_login()
 
     @allure.step("Проверить: отображается ошибка '{error_msg}'")
     def check_error_with_msg(self, error_msg=E_MSG_LOGIN):
