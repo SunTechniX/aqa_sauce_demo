@@ -2,6 +2,9 @@
 name: Sauce Demo Tests
 
 on:
+  # Запуск по расписанию — каждый день в 12:00 UTC
+  schedule:
+    - cron: '40 11 * * *'
   push:
     branches: [ main, develop ]
   pull_request:
