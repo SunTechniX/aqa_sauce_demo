@@ -4,11 +4,7 @@ name: Sauce Demo Tests
 on:
   # Запуск по расписанию — каждый день в 12:00 UTC
   schedule:
-    - cron: '0 9 * * *'
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    - cron: '20 0 * * *'
   workflow_dispatch:
     inputs:
       test_marker:
