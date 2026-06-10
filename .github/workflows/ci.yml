@@ -3,7 +3,7 @@ name: Sauce Demo Tests
 
 on:
   schedule:
-    - cron: '40  15  *  *  *'
+    - cron: '1  6  10  6  *'
   workflow_dispatch:
     inputs:
       test_marker:
